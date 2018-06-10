@@ -42,8 +42,8 @@ public class ConsoleLogger: LoggerBase {
         
         let keyedData = info.dictionary(usingDateFormat: dateFormatter)
         
-        let line = String(withKeyedFormat: self.logformat, keyedData) + "\n"
-        
+        let line = String(withKeyedFormat: self.logformat, keyedData)
+        print(line)
         
         /*let levelInfoSec: String = {
             var rtn: String = self.useSTDNaming ?  info.level.STDName : info.level.name
@@ -55,7 +55,7 @@ public class ConsoleLogger: LoggerBase {
         
         let line = "[\(levelInfoSec)] [\(dateFormatter.string(from: info.date))] [\(info.processName):\(info.processIdentifier)] [\(threadName)] [\(info.filename):(\(info.line))] [\(info.funcname)]: \(info.message)"*/
         
-        print(line)
+        
         //Using fputs instead of print because sometines when using print the message gets broken up when another thread prints at the same time
         //fputs(line + "\n", stdout)
         fflush(stdout)
