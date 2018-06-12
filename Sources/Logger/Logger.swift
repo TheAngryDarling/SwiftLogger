@@ -23,7 +23,8 @@ public protocol Logger {
 
 public extension Logger {
     /*
-     Log a message.  This calls the logMessage method on the instance of the logger
+     Log a message.  This calls the logMessage method on the instance of the logger.
+     Never log with a log level of any.  Its not supported
      - parameters:
         - message: The message to log
         - level: The log level to use
@@ -37,6 +38,7 @@ public extension Logger {
                     line: Int = #line,
                     funcname: String = #function,
                     additionalInfo: [String: Any] = [:]) {
+        precondition(level != .any, "Log level any should not be used when logging message.  It should only be used on logger objects as to the level in which to log")
         self.logMessage(message: message, level: level, filename: filename, line: line, funcname: funcname, additionalInfo: additionalInfo)
     }
 }
