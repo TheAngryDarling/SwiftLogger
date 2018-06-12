@@ -44,9 +44,7 @@ public class TextFileLogger: FileLogger {
         super.init(usingFile: file, rollover: rollover, logQueueName: logQueueName, withlogLevel: logLevel , useAsyncLogging: useAsyncLogging)
     }
     
-    internal override func logLine(_ info: LoggerBase.LogInfo) {
-        
-        super.logLine(info)
+    internal override func logInfo(_ info: LoggerBase.LogInfo) {
         
         let keyedData = info.dictionary(usingDateFormat: dateFormatter)
         
