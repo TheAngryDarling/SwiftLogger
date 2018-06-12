@@ -62,7 +62,7 @@ public class JSONFileLogger: FileLogger {
      }
     
     
-    internal override func logLine(_ info: LoggerBase.LogInfo) {
+    internal override func logInfo(_ info: LoggerBase.LogInfo) {
         
         func sortKeys(lhs: String, rhs: String) -> Bool {
             func sortNumericValue(_ key: String) -> Int {
@@ -82,8 +82,6 @@ public class JSONFileLogger: FileLogger {
             
             
         }
-        
-        super.logLine(info)
         
         var keyedData = info.dictionary(usingDateFormat: dateFormatter)
         keyedData["log_level_name"] = info.level.name
