@@ -27,7 +27,11 @@ public class LoggerBase: Logger {
                     message: String,
                     processIdentifier: Int32 = ProcessInfo.processInfo.processIdentifier,
                     processName: String = ProcessInfo.processInfo.processName,
-                    thread: Thread = Thread.current,
+                    threadName: String? = {
+                        if let n = Thread.current.name, !n.isEmpty { return n }
+                        else if Thread.current.isMainThread { return "main" }
+                        return nil
+                    }(),
                     filename: String,
                     line: Int,
                     funcname: String,
@@ -38,9 +42,7 @@ public class LoggerBase: Logger {
             self.message = message
             self.processIdentifier = processIdentifier
             self.processName = processName
-            if let n = thread.name, !n.isEmpty { self.threadName = n }
-            else if thread.isMainThread { self.threadName = "main" }
-            else { self.threadName = nil }
+            self.threadName = threadName
             self.filename = filename
             self.line = line
             self.funcname = funcname
