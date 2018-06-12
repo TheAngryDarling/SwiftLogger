@@ -10,17 +10,17 @@ import Foundation
 public class LoggerBase: Logger {
     
     public struct LogInfo {
-        let date: Date
-        let level: LogLevel
-        let message: String
-        let processIdentifier: Int32
-        let processName: String
-        let threadName: String?
-        let filename: String
-        let line: Int
-        let funcname: String
-        let stackSymbols: [String]
-        let additionalInfo: [String: Any]
+        public let date: Date
+        public let level: LogLevel
+        public let message: String
+        public let processIdentifier: Int32
+        public let processName: String
+        public let threadName: String?
+        public let filename: String
+        public let line: Int
+        public let funcname: String
+        public let additionalInfo: [String: Any]
+        private let stackSymbols: [String]
         
         public init(date: Date = Date(),
                     level: LogLevel,
