@@ -9,8 +9,9 @@ final class LoggerTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
         
+        consoleLogger.logLevel = .info
         print("Log Level: \(consoleLogger.logLevel.name)")
-        consoleLogger.log("ERROR MESSAGE", .error)
+        consoleLogger.log("ERROR MESSAGE", .info)
         print("AFTER LOG")
         fflush(stdout)
         
@@ -60,6 +61,33 @@ final class LoggerTests: XCTestCase {
         
         logToFile(fileLog)
     }
+    
+    func multiLogger(fileName: String, logLine: String) {
+        
+        let logger = TextFileLogger(usingFile: fileName,
+                                     rollover: FileLogger.FileRollover(atSize: 100000, naming: .sequentialWith(maxLogFiles: 10)))
+        
+        for i in 0..<10000 {
+            
+            logger.log(logLine + ": Logging message \(i)", .error)
+        }
+    }
+    func testMultiLoggers() {
+        let fileName: String = "/tmp/testsequenceMultilog.log"
+        let opQueue: OperationQueue = OperationQueue()
+        let queueCount = 4
+        for i in 0..<queueCount {
+            opQueue.addOperation {
+                let s = Double((queueCount-1) - i) / 10000
+                if s > 0.0 {
+                    print("Queue [\(i)] sleeping for \(s)")
+                    Thread.sleep(forTimeInterval: s)
+                }
+                self.multiLogger(fileName: fileName, logLine: "Logging Queue [\(i)]")
+            }
+        }
+        opQueue.waitUntilAllOperationsAreFinished()
+    }
 
     static var allTests = [
         ("testLogToConsole", testLogToConsole),
@@ -67,5 +95,6 @@ final class LoggerTests: XCTestCase {
         ("testTextLogToFileSequence", testTextLogToFileSequence),
         ("testJSONLogToFileDate", testJSONLogToFileDate),
         ("testJSONLogToFileSequence", testJSONLogToFileSequence),
+        ("testMultiLoggers", testMultiLoggers)
     ]
 }
