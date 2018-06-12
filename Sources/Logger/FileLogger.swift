@@ -285,12 +285,45 @@ public extension FileLogger {
  */
 public class FileLogger: LoggerBase {
     
+    
+    private struct LogFileDispatchQueueContainer {
+        private let queue: DispatchQueue
+        public private(set) var lastAccessed: Date
+        public let file: String
+        
+        public init(forFile path: String) {
+            self.file = path
+            self.queue = DispatchQueue(label: "org.logger.FileLogger.FileDispatchQueue." + path)
+            self.lastAccessed = Date()
+        }
+        
+        public mutating func getQueue() -> DispatchQueue {
+            self.lastAccessed = Date()
+            return self.queue
+        }
+    }
+    
+    private static var LOG_FILE_QUEUE_LIST: [LogFileDispatchQueueContainer] = []
+    private static let LOG_FILE_QUEUE_LIST_ACCESSOR: DispatchQueue = DispatchQueue(label: "org.logger.FileLogger.FileDispatchQueue.accessor")
+   
+    private static let LOG_FILE_QUEUE_LIST_CLEANER_TIMEOUT: TimeInterval = (60 * 60) // 1h - How old the dispatch queue can be idle for before its removed
+    private static let LOG_FILE_QUEUE_LIST_CLEANER_TIMER_INTERVAL: TimeInterval = (60 * 15) // 15 minutes
+    private static var LOG_FILE_QUEUE_LIST_CLEANER_LAST_EXECUTION: Date = Date()
+    private static let LOG_FILE_QUEUE_LIST_CLEANER: Timer? = {
+        if #available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
+            return Timer(timeInterval: LOG_FILE_QUEUE_LIST_CLEANER_TIMER_INTERVAL, repeats: true, block: FileLogger.fileQueueCleaner)
+        } else {
+            return nil
+        }
+    }()
+    
     public var logLevel: LogLevel
     public var rollover: FileRollover
     public private(set) var file: String
     public var errorHandler: ((Swift.Error)->Void)? = nil
     
     public var pendingLogCount: Int { return self.loggerQueue.operationCount }
+    
     
     /**
      Create new instance of FileLogger
@@ -307,9 +340,66 @@ public class FileLogger: LoggerBase {
                 withlogLevel logLevel: LogLevel = .error,
                 useAsyncLogging: Bool = false) {
         self.logLevel = logLevel
-        self.file = file
+        self.file = FileLogger.resolvePath(file)
         self.rollover = rollover
         super.init(logQueueName: logQueueName, useAsyncLogging: useAsyncLogging)
+    }
+    
+    
+    // Resolves any tilde in path and symbolic links.
+    // We want the real absolute path for the Global LogFileQueue to work properly
+    // Otherwise access to the same file from different logger objects could occur at the same time.
+    private static func resolvePath(_ path: String) -> String {
+        var rtn: String = path
+        
+        rtn = NSString(string: rtn).expandingTildeInPath
+        rtn = NSString(string: rtn).resolvingSymlinksInPath
+        
+        return rtn
+    }
+    
+    private static func fileQueueCleanerNoLocking() {
+        FileLogger.LOG_FILE_QUEUE_LIST_CLEANER_LAST_EXECUTION = Date()
+        for r in FileLogger.LOG_FILE_QUEUE_LIST {
+            let dateDiff = FileLogger.LOG_FILE_QUEUE_LIST_CLEANER_LAST_EXECUTION.timeIntervalSince(r.lastAccessed)
+            if dateDiff >= FileLogger.LOG_FILE_QUEUE_LIST_CLEANER_TIMEOUT {
+                if let idx = FileLogger.LOG_FILE_QUEUE_LIST.index(where: { $0.file == r.file }) {
+                    FileLogger.LOG_FILE_QUEUE_LIST.remove(at: idx)
+                }
+            }
+        }
+    }
+    
+    private static func fileQueueCleanerLocking() {
+        FileLogger.LOG_FILE_QUEUE_LIST_ACCESSOR.sync {
+            FileLogger.fileQueueCleanerNoLocking()
+        }
+    }
+    // Used to clean up any old log file queues
+    private static func fileQueueCleaner(_ timer: Timer) -> Void {
+        FileLogger.fileQueueCleanerLocking()
+    }
+    private func getLogQueue() -> DispatchQueue {
+        return FileLogger.LOG_FILE_QUEUE_LIST_ACCESSOR.sync {
+            // If we don't have a timmer running for clearing out old queue's, we will do a manual check.
+            if FileLogger.LOG_FILE_QUEUE_LIST_CLEANER == nil {
+                if Date().timeIntervalSince(FileLogger.LOG_FILE_QUEUE_LIST_CLEANER_LAST_EXECUTION) >= FileLogger.LOG_FILE_QUEUE_LIST_CLEANER_TIMER_INTERVAL {
+                    FileLogger.fileQueueCleanerNoLocking()
+                }
+            }
+            
+            //Try and find the file in the list of queues alread created
+            for i in 0..<FileLogger.LOG_FILE_QUEUE_LIST.count {
+                if FileLogger.LOG_FILE_QUEUE_LIST[i].file == self.file {
+                    return FileLogger.LOG_FILE_QUEUE_LIST[i].getQueue()
+                }
+            }
+            
+            //Create a new queue for this file
+            var rtn = LogFileDispatchQueueContainer(forFile: self.file)
+            FileLogger.LOG_FILE_QUEUE_LIST.append(rtn)
+            return rtn.getQueue()
+        }
     }
     
     private func doRolloverCheck() throws {
@@ -322,15 +412,23 @@ public class FileLogger: LoggerBase {
     
     internal override func logLine(_ info: LoggerBase.LogInfo) {
         
-        
         do {
         
             //Since we inherit LoggerBase we know that this method is only called through the OperationQueue one at a time.  So no need to sync lock the roll over method when doing file name lookup / renames.
             try doRolloverCheck()
+            
+            // We call the log line on a dispatch queue directly associated with the file name
+            // that way if there are multiple FileLogger objects logging to the same file there is no overlapping
+            try self.getLogQueue().sync { try logInfo(info) }
+            
+            
         } catch {
             triggerError(error)
         }
         
+    }
+    
+    internal func logInfo(_ info: LoggerBase.LogInfo) throws {
     }
     
     internal func triggerError(_ error: Swift.Error) {
