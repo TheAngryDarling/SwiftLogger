@@ -26,7 +26,7 @@ public class ConsoleLogger: LoggerBase {
     public init(logQueueName: String? = nil,
                 withlogLevel logLevel: LogLevel = .error,
                 usingDateFormat dateFormat: String = LoggerBase.STANDARD_DATE_FORMAT,
-                withLogFormat logformat: @escaping (LogInfo)->String = ConsoleLogger.defaultLogFormat) {
+                withLogFormat logformat: @escaping (LogInfo)->String) {
         self.logLevel = logLevel
         self.dateFormatter = DateFormatter()
         self.dateFormatter.dateFormat = dateFormat
@@ -34,9 +34,23 @@ public class ConsoleLogger: LoggerBase {
         super.init(logQueueName: logQueueName, useAsyncLogging: false)
     }
     
-    public static func defaultLogFormat(_ info: LogInfo) -> String {
-        return "%{log_level:@.symbol} - %{date} - %{process_name} - %{thread} - %{file_name}:%{file_line} - %{function_name} - %{log_level:@.STDName} - %{message}"
+    /**
+     Create new instance of Cosole
+     - parameters:
+     - logQueueName: The name of the queue used for logging (Default is nil)
+     - withLogLevel: The starting level for this logger (Default is .error)
+     - usingDateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd'T'HH:mm:ss:SSSZ')
+     - withLogFormat: Keyed format in which to log with.  Keys are: log_level, date, process_name, thread, file_name, file_line, function_name, message.  Log_level has the following sub properties: name, STDName, symbol.  To create your own keyedFormat please refer to IndexedStringFormat
+     */
+    public convenience init(logQueueName: String? = nil,
+                withlogLevel logLevel: LogLevel = .error,
+                usingDateFormat dateFormat: String = LoggerBase.STANDARD_DATE_FORMAT,
+                withLogFormat logformat: String = "%{log_level:@.symbol} - %{date} - %{process_name} - %{thread} - %{file_name}:%{file_line} - %{function_name} - %{log_level:@.STDName} - %{message}") {
+        
+        self.init(logQueueName: logQueueName, withlogLevel: logLevel, usingDateFormat: dateFormat, withLogFormat: { _ in return logformat } )
     }
+    
+   
     
     internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
         return (info.level >= self.logLevel)
