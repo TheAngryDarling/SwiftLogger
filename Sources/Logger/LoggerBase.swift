@@ -128,7 +128,7 @@ public class LoggerBase: Logger {
     }
     
     
-    internal func canLogLevel(_ level: LogLevel, forInfo info: LogInfo) -> Bool {
+    internal func canLogLevel(forInfo info: LogInfo) -> Bool {
         precondition(type(of: self) != LoggerBase.self, "Can not call abstract method LoggerBase.canLogLevel.  Please use class that inherits it.")
         return false
     }
@@ -148,7 +148,7 @@ public class LoggerBase: Logger {
                            funcname: funcname,
                            additionalInfo: additionalInfo)
         
-        if self.canLogLevel(level, forInfo: info) {
+        if self.canLogLevel(forInfo: info) {
             self.loggerQueue.add {
                 self.logLine(info)
             }

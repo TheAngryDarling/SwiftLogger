@@ -406,8 +406,8 @@ public class FileLogger: LoggerBase {
         try self.rollover.rollover(atPath: self.file)
     }
     
-    internal override func canLogLevel(_ level: LogLevel, forInfo info: LogInfo) -> Bool {
-        return (level >= self.logLevel)
+    internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
+        return (info.level >= self.logLevel)
     }
     
     internal override func logLine(_ info: LoggerBase.LogInfo) {
