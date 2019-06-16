@@ -6,6 +6,10 @@
 //
 
 import Foundation
+#if os(Linux)
+import Dispatch
+import Glibc
+#endif
 
 public extension FileLogger {
     public enum Error: Swift.Error {

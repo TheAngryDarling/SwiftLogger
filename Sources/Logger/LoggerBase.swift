@@ -6,6 +6,10 @@
 //
 
 import Foundation
+#if os(Linux)
+import Dispatch
+import Glibc
+#endif
 
 public class LoggerBase: Logger {
     
