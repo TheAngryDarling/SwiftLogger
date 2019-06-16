@@ -71,7 +71,7 @@ obj.doMethod()
 ```
 
 ## Dependancies
-* **IndexedStringFormat** - Used to allow users to control log output format when writing to console or text file  - [IndexedStringFormat](https://github.com/TheAngryDarling/IndexedStringFormat)
+* **IndexedStringFormat** - Used to allow users to control log output format when writing to console or text file  - [IndexedStringFormat](https://github.com/TheAngryDarling/SwiftIndexedStringFormat)
 
 
 ## Author
