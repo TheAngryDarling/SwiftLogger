@@ -7,22 +7,20 @@
 
 import Foundation
 
-/**
- Used to log to the console.
- */
+/// Used to log to the console.
 public class ConsoleLogger: LoggerBase {
     public var logLevel: LogLevel
     public var logFormat: ((LogInfo)->String)
     private let dateFormatter: DateFormatter
     
-    /**
-     Create new instance of Cosole
-     - parameters:
-     - logQueueName: The name of the queue used for logging (Default is nil)
-     - withLogLevel: The starting level for this logger (Default is .error)
-     - usingDateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd'T'HH:mm:ss:SSSZ')
-     - withLogFormat: Keyed format in which to log with.  Keys are: log_level, date, process_name, thread, file_name, file_line, function_name, message.  Log_level has the following sub properties: name, STDName, symbol.  To create your own keyedFormat please refer to IndexedStringFormat
-     */
+    
+    /// Create new instance of Console
+    ///
+    /// - parameters:
+    ///   - logQueueName: The name of the queue used for logging (Default is nil)
+    ///   - logLevel: The starting level for this logger (Default is .error)
+    ///   - dateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd'T'HH:mm:ss:SSSZ')
+    ///   - logformat: Keyed format in which to log with.  Keys are: log_level, date, process_name, thread, file_name, file_line, function_name, message.  Log_level has the following sub properties: name, STDName, symbol.  To create your own keyedFormat please refer to IndexedStringFormat
     public init(logQueueName: String? = nil,
                 withlogLevel logLevel: LogLevel = .error,
                 usingDateFormat dateFormat: String = LoggerBase.STANDARD_DATE_FORMAT,
@@ -34,14 +32,13 @@ public class ConsoleLogger: LoggerBase {
         super.init(logQueueName: logQueueName, useAsyncLogging: false)
     }
     
-    /**
-     Create new instance of Cosole
-     - parameters:
-     - logQueueName: The name of the queue used for logging (Default is nil)
-     - withLogLevel: The starting level for this logger (Default is .error)
-     - usingDateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd'T'HH:mm:ss:SSSZ')
-     - withLogFormat: Keyed format in which to log with.  Keys are: log_level, date, process_name, thread, file_name, file_line, function_name, message.  Log_level has the following sub properties: name, STDName, symbol.  To create your own keyedFormat please refer to IndexedStringFormat
-     */
+
+    /// Create new instance of Cosole
+    /// - parameters:
+    ///   - logQueueName: The name of the queue used for logging (Default is nil)
+    ///   - logLevel: The starting level for this logger (Default is .error)
+    ///   - dateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd'T'HH:mm:ss:SSSZ')
+    ///   - logformat: Keyed format in which to log with.  Keys are: log_level, date, process_name, thread, file_name, file_line, function_name, message.  Log_level has the following sub properties: name, STDName, symbol.  To create your own keyedFormat please refer to IndexedStringFormat
     public convenience init(logQueueName: String? = nil,
                 withlogLevel logLevel: LogLevel = .error,
                 usingDateFormat dateFormat: String = LoggerBase.STANDARD_DATE_FORMAT,
@@ -80,14 +77,12 @@ public class ConsoleLogger: LoggerBase {
     }
 }
 
-/*
- A Console logger which only logs messages when the log level provided matches the one in the logger
- */
+/// A Console logger which only logs messages when the log level provided matches the one in the logger
 public class ExplicitConsoleLogger: ConsoleLogger {
     internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
         return (info.level == self.logLevel)
     }
 }
 
-//Global access to concole logger
+/// Global access to concole logger
 public let consoleLogger: ConsoleLogger = ConsoleLogger()

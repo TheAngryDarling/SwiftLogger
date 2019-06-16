@@ -22,16 +22,18 @@ public extension FileLogger {
 
 
 public extension FileLogger {
+    /// Enum to indicate how file rollover names should be handled
     public enum RolloverNaming: ExpressibleByStringLiteral {
         case sequential
         case sequentialWith(maxLogFiles: UInt)
         case date(format: String, maxLogFiles: UInt?)
         
-        
+        /// Creates a new Date rollover with the string as the format with now max log size
         public init(stringLiteral value: String) {
             self = .date(format: value, maxLogFiles: nil)
         }
         
+        /// Creates a new sequential rollover
         public init() {
             self = .sequential
         }
@@ -43,6 +45,9 @@ public extension FileLogger {
             self = .date(format: format, maxLogFiles: max)
         }
         
+        /// Function to rollover the log file
+        ///
+        /// - Parameter path: The path of the file to rollover
         fileprivate func rolloverFile(atPath path: String) throws {
             switch self {
             case .sequential: try rolloverBySequence(atPath: path, withMaxLogs: nil)
@@ -52,6 +57,12 @@ public extension FileLogger {
         }
         
         
+        /// Function to rollover the log file
+        ///
+        /// - Parameters:
+        ///   - path: The path of the file to rollover
+        ///   - format: The Date format string
+        ///   - withMaxLogs: The count of the maximum number of log file to store if there is one
         private func rolloverByDate(atPath path: String, dateFormat format: String, withMaxLogs: UInt?) throws {
             let nsFilename = NSString(string: path)
             var filename = nsFilename.deletingPathExtension
@@ -116,6 +127,11 @@ public extension FileLogger {
             
         }
         
+        /// Function to rollover the log file
+        ///
+        /// - Parameters:
+        ///   - path: The path of the file to rollover
+        ///   - withMaxLogs: The count of the maximum number of log file to store if there is one
         private func rolloverBySequence(atPath path: String, withMaxLogs: UInt?) throws {
             
             func getCurrentSequence(fromPath path: String) -> UInt? {
@@ -188,7 +204,7 @@ public extension FileLogger {
 }
 
 public extension FileLogger {
-    // Indicates how to handle log file rolling over
+    /// Indicates how to handle log file rolling over
     public enum FileRollover {
         
         case none
@@ -284,9 +300,8 @@ public extension FileLogger {
 }
 
 
-/**
- Create new logger writting logs to specific file.
- */
+/// Create new logger writting logs to specific file.
+/// Only logs messages with a log level score >= log level in the logger will be written
 public class FileLogger: LoggerBase {
     
     

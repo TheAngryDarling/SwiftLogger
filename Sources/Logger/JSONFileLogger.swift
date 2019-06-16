@@ -24,18 +24,18 @@ public class JSONFileLogger: FileLogger {
     private let loggingKeys: [String]
     private let keyMapping: [String: String]
     
-    /**
-     Create new instance of FileLogger
-     - parameters:
-     - usingFile: The file to write the logs to
-     - rollover: Indicates if and when to roll over files (Default is .none)
-     - withStringEncoding: The encoding to use when reading & writting to file (Default is utf8)
-     - logQueueName: The name of the queue used for logging (Default is nil)
-     - withLogLevel: The starting level for this logger (Default is .error)
-     - useAsyncLogging: Indicates of logging should be done asynchronously (Default is false)
-     - usingDateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd HH:mm:ss:SSS')
-     - loggingKeys: Object Keys to log
-     */
+    
+    /// Create new instance of FileLogger
+    /// - parameters:
+    ///   - usingFile: The file to write the logs to
+    ///   - rollover: Indicates if and when to roll over files (Default is .none)
+    ///   - encoding: The encoding to use when reading & writting to file (Default is utf8)
+    ///   - logQueueName: The name of the queue used for logging (Default is nil)
+    ///   - logLevel: The starting level for this logger (Default is .error)
+    ///   - useAsyncLogging: Indicates of logging should be done asynchronously (Default is false)
+    ///   - dateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd HH:mm:ss:SSS')
+    ///   - loggingKeys: Object Keys to log
+    ///   - keyMapping: Mapping of log parameter names to names to write json log
     public init(usingFile file: String,
                 rollover: FileRollover = .none,
                 withStringEncoding encoding: String.Encoding = .utf8,

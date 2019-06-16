@@ -8,6 +8,7 @@
 import Foundation
 import IndexedStringFormat
 
+/// Class for logging to a text file
 public class TextFileLogger: FileLogger {
     
     private let encoding: String.Encoding
@@ -15,18 +16,18 @@ public class TextFileLogger: FileLogger {
     private let logformat: String
     
     
-    /**
-     Create new instance of FileLogger
-     - parameters:
-     - usingFile: The file to write the logs to
-     - rollover: Indicates if and when to roll over files (Default is .none)
-     - withStringEncoding: The encoding to use when reading & writting to file (Default is utf8)
-     - logQueueName: The name of the queue used for logging (Default is nil)
-     - withLogLevel: The starting level for this logger (Default is .error)
-     - useAsyncLogging: Indicates of logging should be done asynchronously (Default is false)
-     - usingDateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd'T'HH:mm:ss:SSSZ')
-     - withLogFormat: Keyed format in which to log with.  Keys are: log_level, date, process_name, thread, file_name, file_line, function_name, message.  Log_level has the following sub properties: name, STDName, symbol.  To create your own keyedFormat please refer to IndexedStringFormat
-     */
+    
+    /// Create new instance of FileLogger
+    ///
+    /// - parameters:
+    ///   - file: The file to write the logs to
+    ///   - rollover: Indicates if and when to roll over files (Default is .none)
+    ///   - encoding: The encoding to use when reading & writting to file (Default is utf8)
+    ///   - logQueueName: The name of the queue used for logging (Default is nil)
+    ///   - logLevel: The starting level for this logger (Default is .error)
+    ///   - useAsyncLogging: Indicates of logging should be done asynchronously (Default is false)
+    ///   - dateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd'T'HH:mm:ss:SSSZ')
+    ///   - logformat: Keyed format in which to log with.  Keys are: log_level, date, process_name, thread, file_name, file_line, function_name, message.  Log_level has the following sub properties: name, STDName, symbol.  To create your own keyedFormat please refer to IndexedStringFormat
     public init(usingFile file: String,
                 rollover: FileRollover = .none,
                 withStringEncoding encoding: String.Encoding = .utf8,
@@ -100,9 +101,7 @@ public class TextFileLogger: FileLogger {
     
 }
 
-/*
- A File logger which only logs messages when the log level provided matches the one in the logger
- */
+/// A File logger which only logs messages when the log level provided matches the one in the logger
 public class ExplicitTextFileLogger: TextFileLogger {
     internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
         return (info.level == self.logLevel)

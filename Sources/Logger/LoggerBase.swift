@@ -11,8 +11,10 @@ import Dispatch
 import Glibc
 #endif
 
+/// A Base helper class for Loggers
 public class LoggerBase: Logger {
     
+    /// A structure containing all the details about a log message
     public struct LogInfo {
         public let date: Date
         public let level: LogLevel
@@ -55,6 +57,10 @@ public class LoggerBase: Logger {
         }
         
         
+        /// Converts a LogInfo message to a dictionary of data
+        ///
+        /// - Parameter dateFormatter: The date format to use when converting dates to strings
+        /// - Returns: Returns a dictionary of all the message details
         public func dictionary(usingDateFormat dateFormatter: DateFormatter) -> [String: Any?] {
             var rtn: [String: Any?] =  [
                 "date": dateFormatter.string(from: self.date),
@@ -108,11 +114,17 @@ public class LoggerBase: Logger {
         
     }
     
+    /// The standard date format to use when converting dates to strings
     public static let STANDARD_DATE_FORMAT: String = "yyyy-MM-dd'T'HH:mm:ss:SSSZ"
     
     internal var loggerQueue: Queue
    
     
+    /// Creates a new instance of the Logger base
+    ///
+    /// - Parameters:
+    ///   - logQueueName: optional name for the DispatchQueue used when logging messages
+    ///   - useAsyncLogging: Indicator if logging should be done asynchronously (Default: True)
     public init(logQueueName: String?, useAsyncLogging: Bool = true) {
         if useAsyncLogging { self.loggerQueue = Queue(operationName: logQueueName, withMaxConcurrentOperations: 1) }
         else {
