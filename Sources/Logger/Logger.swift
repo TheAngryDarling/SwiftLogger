@@ -37,12 +37,12 @@ public extension Logger {
     ///    - line: The line number in the file that this method was called (Defaults to #line)
     ///    - funcname: The name of the function that called this function (Defaults to #function)
     ///    - additionalInfo: Any additional info to pass to the logger for use in the logging message
-    public func log(_ message: String,
-                    _ level: LogLevel = .info,
-                    filename: String = #file,
-                    line: Int = #line,
-                    funcname: String = #function,
-                    additionalInfo: [String: Any] = [:]) {
+    func log(_ message: String,
+            _ level: LogLevel = .info,
+            filename: String = #file,
+            line: Int = #line,
+            funcname: String = #function,
+            additionalInfo: [String: Any] = [:]) {
         precondition(level != .any, "Log level any should not be used when logging message.  It should only be used on logger objects as to the level in which to log")
         self.logMessage(message: message, level: level, filename: filename, line: line, funcname: funcname, additionalInfo: additionalInfo)
     }
