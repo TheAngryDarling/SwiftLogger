@@ -33,26 +33,26 @@ public class LoggerBase: Logger {
                     message: String,
                     processIdentifier: Int32 = ProcessInfo.processInfo.processIdentifier,
                     processName: String = ProcessInfo.processInfo.processName,
-                    threadName: String? = {
-                        if let n = Thread.current.name, !n.isEmpty { return n }
-                        else if Thread.current.isMainThread { return "main" }
-                        return nil
-                    }(),
+                    threadName: String? = nil,
                     filename: String,
                     line: Int,
                     funcname: String,
-                    stackSymbols: [String] = Thread.callStackSymbols,
+                    stackSymbols: [String]? = nil,
                     additionalInfo: [String: Any] = [:]) {
             self.date = date
             self.level = level
             self.message = message
             self.processIdentifier = processIdentifier
             self.processName = processName
-            self.threadName = threadName
+            self.threadName = threadName ?? {
+                if let n = Thread.current.name, !n.isEmpty { return n }
+                else if Thread.current._isMainThread { return "main" }
+                return nil
+                }()
             self.filename = filename
             self.line = line
             self.funcname = funcname
-            self.stackSymbols = stackSymbols
+            self.stackSymbols = stackSymbols ?? Thread._callStackSymbols
             self.additionalInfo = additionalInfo
         }
         
@@ -86,29 +86,31 @@ public class LoggerBase: Logger {
     }
     
     internal enum Queue {
-        case dispatch(DispatchQueue)
-        case operation(OperationQueue)
+        case sync(DispatchQueue)
+        case async(OperationQueue)
         
-        public init(dispatchName: String) {
-            self = .dispatch(DispatchQueue(label: dispatchName))
+        public init(syncName: String) {
+            self = .sync(DispatchQueue(label: syncName))
         }
-        public init(operationName: String? = nil, withMaxConcurrentOperations: Int) {
+        public init(asyncName: String, withMaxConcurrentOperations: Int) {
+            let dq = DispatchQueue(label: asyncName)
             let oq = OperationQueue()
+            oq.underlyingQueue = dq
             oq.maxConcurrentOperationCount = withMaxConcurrentOperations
-            if let n = operationName { oq.name = n }
+            oq.name = asyncName
             
-            self = .operation(oq)
+            self = .async(oq)
         }
         
         public var operationCount: Int {
-            guard case let .operation(op) = self else { return 0 }
+            guard case let .async(op) = self else { return 0 }
             return op.operationCount
         }
         
         public func add(_ block: @escaping () -> Swift.Void) {
             switch self {
-                case .dispatch(let dq): dq.sync(execute: block)
-                case .operation(let oq): oq.addOperation(block)
+                case .sync(let dq): dq.sync(execute: block)
+                case .async(let oq): oq.addOperation(block)
             }
         }
         
@@ -126,10 +128,10 @@ public class LoggerBase: Logger {
     ///   - logQueueName: optional name for the DispatchQueue used when logging messages
     ///   - useAsyncLogging: Indicator if logging should be done asynchronously (Default: True)
     public init(logQueueName: String?, useAsyncLogging: Bool = true) {
-        if useAsyncLogging { self.loggerQueue = Queue(operationName: logQueueName, withMaxConcurrentOperations: 1) }
+         let lName = logQueueName ?? "logger.LoggerBase.dispatch"
+        if useAsyncLogging { self.loggerQueue = Queue(asyncName: lName, withMaxConcurrentOperations: 1) }
         else {
-            let lName = logQueueName ?? "logger.LoggerBase.dispatch"
-            self.loggerQueue = Queue(dispatchName: lName)
+            self.loggerQueue = Queue(syncName: lName)
         }
         
         precondition(type(of: self) != LoggerBase.self, "Can not initiate abstract class LoggerBase.  Please use class that inherits it.")
