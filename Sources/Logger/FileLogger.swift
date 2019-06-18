@@ -12,7 +12,7 @@ import Glibc
 #endif
 
 public extension FileLogger {
-    public enum Error: Swift.Error {
+    enum Error: Swift.Error {
         case unableToOpenFile(String)
         case unableToCreateFile(String)
         case unableToCovertStringToData(String)
@@ -23,7 +23,7 @@ public extension FileLogger {
 
 public extension FileLogger {
     /// Enum to indicate how file rollover names should be handled
-    public enum RolloverNaming: ExpressibleByStringLiteral {
+    enum RolloverNaming: ExpressibleByStringLiteral {
         case sequential
         case sequentialWith(maxLogFiles: UInt)
         case date(format: String, maxLogFiles: UInt?)
@@ -205,7 +205,7 @@ public extension FileLogger {
 
 public extension FileLogger {
     /// Indicates how to handle log file rolling over
-    public enum FileRollover {
+    enum FileRollover {
         
         case none
         case atSize(UInt, naming: RolloverNaming)
