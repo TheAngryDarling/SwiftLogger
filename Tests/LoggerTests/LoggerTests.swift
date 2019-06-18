@@ -4,6 +4,15 @@ import Foundation
 
 
 final class LoggerTests: XCTestCase {
+    
+    override class func setUp() {
+        super.setUp()
+        try? FileManager.default.removeItem(atPath: "/tmp/testsequencelog.log")
+        try? FileManager.default.removeItem(atPath: "/tmp/testdatelog.log")
+        try? FileManager.default.removeItem(atPath: "/tmp/testsequencelog.json")
+        try? FileManager.default.removeItem(atPath: "/tmp/testdatelog.json")
+        try? FileManager.default.removeItem(atPath: "/tmp/testsequenceMultilog.log")
+    }
     func testLogToConsole() {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
