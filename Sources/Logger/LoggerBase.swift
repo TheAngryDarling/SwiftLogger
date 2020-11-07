@@ -85,13 +85,20 @@ public class LoggerBase: Logger {
         
     }
     
+    /// Queue used when logging
     internal enum Queue {
         case sync(DispatchQueue)
         case async(OperationQueue)
         
+        /// Create new queue
+        /// - Parameter syncName: Naame to call queue
         public init(syncName: String) {
             self = .sync(DispatchQueue(label: syncName))
         }
+        /// Crate new queue
+        /// - Parameters:
+        ///   - asyncName: Naame to call queue
+        ///   - withMaxConcurrentOperations: Maximum opersions to execure on queue at any given time
         public init(asyncName: String, withMaxConcurrentOperations: Int) {
             let dq = DispatchQueue(label: asyncName)
             let oq = OperationQueue()
@@ -102,11 +109,17 @@ public class LoggerBase: Logger {
             self = .async(oq)
         }
         
+        /// Returns the current number of operations on the queue
+        /// For sync queues this will always return 0
         public var operationCount: Int {
             guard case let .async(op) = self else { return 0 }
             return op.operationCount
         }
         
+        /// Addes a block to the given queue
+        ///
+        /// If the queue is a synchronous, it will call DispatchQueue.sync and wait for block to finish before returning
+        /// - Parameter block: Block to execute on the queue
         public func add(_ block: @escaping () -> Swift.Void) {
             switch self {
                 case .sync(let dq): dq.sync(execute: block)
@@ -119,18 +132,22 @@ public class LoggerBase: Logger {
     /// The standard date format to use when converting dates to strings
     public static let STANDARD_DATE_FORMAT: String = "yyyy-MM-dd'T'HH:mm:ss:SSSZ"
     
+    /// The queue for the current logger
     internal var loggerQueue: Queue
    
     
     /// Creates a new instance of the Logger base
     ///
+    /// Note: This is an abstract class.  Must be inherited for use
     /// - Parameters:
     ///   - logQueueName: optional name for the DispatchQueue used when logging messages
     ///   - useAsyncLogging: Indicator if logging should be done asynchronously (Default: True)
     public init(logQueueName: String?, useAsyncLogging: Bool = true) {
          let lName = logQueueName ?? "logger.LoggerBase.dispatch"
-        if useAsyncLogging { self.loggerQueue = Queue(asyncName: lName, withMaxConcurrentOperations: 1) }
-        else {
+        if useAsyncLogging {
+            self.loggerQueue = Queue(asyncName: lName,
+                                     withMaxConcurrentOperations: 1)
+        } else {
             self.loggerQueue = Queue(syncName: lName)
         }
         
@@ -148,6 +165,9 @@ public class LoggerBase: Logger {
     }
     
     
+    /// Indicator if the current info can be logged
+    /// - Parameter info: The info wanting to be logged
+    /// - Returns: Returns true of the info should be logged, otherwise false
     internal func canLogLevel(forInfo info: LogInfo) -> Bool {
         precondition(type(of: self) != LoggerBase.self, "Can not call abstract method LoggerBase.canLogLevel.  Please use class that inherits it.")
         return false
@@ -174,9 +194,10 @@ public class LoggerBase: Logger {
             }
         }
     }
-    
+    /// Log the given info
+    /// - Parameter info: The info wanting to be logged
     internal func logLine(_ info: LogInfo) {
-        precondition(type(of: self) != LoggerBase.self, "Can not call abstract method LoggerBase.log.  Please use class that inherits it.")
+        precondition(type(of: self) != LoggerBase.self, "Can not call abstract method LoggerBase.logLine.  Please use class that inherits it.")
     }
     
 }

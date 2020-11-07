@@ -344,15 +344,15 @@ public class FileLogger: LoggerBase {
     public var pendingLogCount: Int { return self.loggerQueue.operationCount }
     
     
-    /**
-     Create new instance of FileLogger
-     - parameters:
-     - usingFile: The file to write the logs to
-     - rollover: Indicates if and when to roll over files (Default is .none)
-     - logQueueName: The name of the queue used for logging (Default is nil)
-     - withLogLevel: The starting level for this logger (Default is .error)
-     - usingDateFormat: Date format for date used in log file (Default is 'yyyy-MM-dd HH:mm:ss:SSS')
-     */
+    /// Create new instance of FileLogger
+    ///
+    /// Note: This is an abstract class.  Must be inherited for use
+    /// - Parameters:
+    ///   - file: The file to write the logs to
+    ///   - rollover: Indicates if and when to roll over files (Default: .none)
+    ///   - logQueueName: The name of the queue used for logging (Default: nil)
+    ///   - logLevel: The starting level for this logger (Default: .error)
+    ///   - useAsyncLogging: Indicator if logging should be done asynchronously or synchronously (Default: false)
     public init(usingFile file: String,
                 rollover: FileRollover = .none,
                 logQueueName: String? = nil,
@@ -368,9 +368,9 @@ public class FileLogger: LoggerBase {
     }
     
     
-    // Resolves any tilde in path and symbolic links.
-    // We want the real absolute path for the Global LogFileQueue to work properly
-    // Otherwise access to the same file from different logger objects could occur at the same time.
+    /// Resolves any tilde in path and symbolic links.
+    /// We want the real absolute path for the Global LogFileQueue to work properly
+    /// Otherwise access to the same file from different logger objects could occur at the same time.
     private static func resolvePath(_ path: String) -> String {
         var rtn: String = path
         
@@ -397,10 +397,13 @@ public class FileLogger: LoggerBase {
             FileLogger.fileQueueCleanerNoLocking()
         }
     }
-    // Used to clean up any old log file queues
+    /// Used to clean up any old log file queues
     private static func fileQueueCleaner(_ timer: Timer) -> Void {
         FileLogger.fileQueueCleanerLocking()
     }
+    /// Gets/Creates the queue specific to the file
+    /// This allows for safe writing to a speciifc file by multiple FileLoggers
+    /// - Returns: Returns the queue identified with the file
     private func getLogQueue() -> DispatchQueue {
         return FileLogger.LOG_FILE_QUEUE_LIST_ACCESSOR.sync {
             // If we don't have a timmer running for clearing out old queue's, we will do a manual check.
@@ -423,7 +426,8 @@ public class FileLogger: LoggerBase {
             return rtn.getQueue()
         }
     }
-    
+    /// Check to see if the file nees to be folled over
+    /// If it does then roll the file
     private func doRolloverCheck() throws {
         try self.rollover.rollover(atPath: self.file)
     }
@@ -450,9 +454,16 @@ public class FileLogger: LoggerBase {
         
     }
     
+    /// Writes the information to the file
+    /// - Parameter info: The information to log to the file
+    /// - Throws: <#description#>
     internal func logInfo(_ info: LoggerBase.LogInfo) throws {
+        precondition(type(of: self) != LoggerBase.self,
+                     "Can not call abstract method FileLogger.logInfo.  Please use class that inherits it.")
     }
     
+    /// Calls the error handler asynchronously
+    /// - Parameter error: The error to pass to the error handler
     internal func triggerError(_ error: Swift.Error) {
         if let handler = errorHandler {
             DispatchQueue.global().async {
