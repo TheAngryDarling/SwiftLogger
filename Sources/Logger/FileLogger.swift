@@ -362,6 +362,9 @@ public class FileLogger: LoggerBase {
         self.file = FileLogger.resolvePath(file)
         self.rollover = rollover
         super.init(logQueueName: logQueueName, useAsyncLogging: useAsyncLogging)
+        
+        precondition(type(of: self) != FileLogger.self,
+                     "Can not initiate abstract class FileLogger.  Please use class that inherits it.")
     }
     
     
