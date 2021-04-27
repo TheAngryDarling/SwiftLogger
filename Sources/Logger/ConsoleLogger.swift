@@ -9,8 +9,20 @@ import Foundation
 
 /// Used to log to the console.
 public class ConsoleLogger: LoggerBase {
+    
+    public static let LOG_FORMAT_DEFAULT: String = "%{log_level:@.symbol} - %{date} - %{process_name} - %{thread} - %{file_name}:%{file_line} - %{function_name} - %{log_level:@.STDName} - %{message}"
+    public static let LOG_FORMAT_WITH_SOURCE: String = "%{log_level:@.symbol} - %{date} - %{process_name} - %{source} - %{thread} - %{file_name}:%{file_line} - %{function_name} - %{log_level:@.STDName} - %{message}"
+    
     public var logLevel: LogLevel
     public var logFormat: ((LogInfo)->String)
+    public var logFormatString: String {
+        get {
+            fatalError("This property is only used for its setter")
+        }
+        set {
+            self.logFormat = { _ in return newValue }
+        }
+    }
     private let dateFormatter: DateFormatter
     
     
@@ -42,15 +54,19 @@ public class ConsoleLogger: LoggerBase {
     public convenience init(logQueueName: String? = nil,
                 withlogLevel logLevel: LogLevel = .error,
                 usingDateFormat dateFormat: String = LoggerBase.STANDARD_DATE_FORMAT,
-                withLogFormat logformat: String = "%{log_level:@.symbol} - %{date} - %{process_name} - %{thread} - %{file_name}:%{file_line} - %{function_name} - %{log_level:@.STDName} - %{message}") {
+                withLogFormat logformat: String = ConsoleLogger.LOG_FORMAT_DEFAULT) {
         
         self.init(logQueueName: logQueueName, withlogLevel: logLevel, usingDateFormat: dateFormat, withLogFormat: { _ in return logformat } )
     }
     
    
     
-    internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
+    /*internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
         return (info.level >= self.logLevel)
+    }*/
+    
+    public override func canLog(_ level: LogLevel) -> Bool {
+        return (level >= self.logLevel)
     }
     
     internal override func logLine(_ info: LoggerBase.LogInfo) {
@@ -79,8 +95,12 @@ public class ConsoleLogger: LoggerBase {
 
 /// A Console logger which only logs messages when the log level provided matches the one in the logger
 public class ExplicitConsoleLogger: ConsoleLogger {
-    internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
+    /*internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
         return (info.level == self.logLevel)
+    }*/
+    
+    public override func canLog(_ level: LogLevel) -> Bool {
+        return (level == self.logLevel)
     }
 }
 

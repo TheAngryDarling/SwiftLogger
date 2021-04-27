@@ -9,7 +9,8 @@ import Foundation
 
 public class JSONFileLogger: FileLogger {
     
-    public static let DEFAULT_LOGGING_KEYS: [String] = ["date","thread","process_name","log_level","file_name","file_line","function_name","message"]
+    public static let DEFAULT_LOGGING_KEYS: [String] = ["date","thread","process_name", "source","log_level","file_name","file_line","function_name","message"]
+    
     public static let DEFAULT_KEY_MAPPING: [String: String] = ["process_name": "process",
                                                                "log_level": "level",
                                                                "log_level_name": "level_name",

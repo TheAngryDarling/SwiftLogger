@@ -6,12 +6,46 @@ import Foundation
 final class LoggerTests: XCTestCase {
     
     override class func setUp() {
+         func cleanUpLogs(_ logs: [String], in path: String) {
+            var logComponents: [[String]] = []
+            for log in logs {
+                if let r = log.range(of: ".", options: .backwards) {
+                    var components: [String] = []
+                    components.append(String(log[log.startIndex..<r.lowerBound]))
+                    components.append(String(log[r.upperBound..<log.endIndex]))
+                    logComponents.append(components)
+                }
+            }
+            
+            if logComponents.count > 0 {
+                if let contents = try? FileManager.default.contentsOfDirectory(atPath: path) {
+                    for object in contents {
+                        for components in logComponents {
+                            if object.hasPrefix(components[0]) && object.hasSuffix(".\(components[1])") {
+                                var fullObjectPath = path
+                                if !path.hasSuffix("/") { fullObjectPath += "/" }
+                                fullObjectPath += object
+                                print("Deleting '\(object)'")
+                                try? FileManager.default.removeItem(atPath: fullObjectPath)
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         super.setUp()
-        try? FileManager.default.removeItem(atPath: "/tmp/testsequencelog.log")
-        try? FileManager.default.removeItem(atPath: "/tmp/testdatelog.log")
-        try? FileManager.default.removeItem(atPath: "/tmp/testsequencelog.json")
-        try? FileManager.default.removeItem(atPath: "/tmp/testdatelog.json")
-        try? FileManager.default.removeItem(atPath: "/tmp/testsequenceMultilog.log")
+        
+        let logFileNameBases = ["testsequencelog", "testdatelog", "testsequenceMultilog"]
+        let logFileExts = ["log", "json"]
+        var logFileNames: [String] = []
+        for logFileName in logFileNameBases {
+            for ext in logFileExts {
+                logFileNames.append(logFileName + "." + ext)
+            }
+        }
+        cleanUpLogs(logFileNames, in: "/tmp/")
     }
     func testLogToConsole() {
         // This is an example of a functional test case.
@@ -19,6 +53,8 @@ final class LoggerTests: XCTestCase {
         // results.
         
         consoleLogger.logLevel = .info
+        // change console print format to output the source/module
+        consoleLogger.logFormatString = ConsoleLogger.LOG_FORMAT_WITH_SOURCE
         print("Log Level: \(consoleLogger.logLevel.name)")
         consoleLogger.log("ERROR MESSAGE", .info)
         print("AFTER LOG")
@@ -37,7 +73,8 @@ final class LoggerTests: XCTestCase {
         let fileName: String = "/tmp/testsequencelog.log"
         
         let fileLog = TextFileLogger(usingFile: fileName,
-                                     rollover: FileLogger.FileRollover(atSize: 1000, naming: .sequentialWith(maxLogFiles: 2)))
+                                     rollover: FileLogger.FileRollover(atSize: 1000, naming: .sequentialWith(maxLogFiles: 2)),
+                                     withLogFormat: TextFileLogger.LOG_FORMAT_WITH_SOURCE)
         
         logToFile(fileLog)
         
@@ -48,7 +85,8 @@ final class LoggerTests: XCTestCase {
         let fileName: String = "/tmp/testdatelog.log"
         
         let fileLog = TextFileLogger(usingFile: fileName,
-                                 rollover: FileLogger.FileRollover(atSize: 1000, naming: "yyyy-MM-dd.HHmmssSSS"))
+                                 rollover: FileLogger.FileRollover(atSize: 1000, naming: "yyyy-MM-dd.HHmmssSSS"),
+                                 withLogFormat: TextFileLogger.LOG_FORMAT_WITH_SOURCE)
         
         logToFile(fileLog)
     }
@@ -74,7 +112,8 @@ final class LoggerTests: XCTestCase {
     func multiLogger(fileName: String, logLine: String) {
         
         let logger = TextFileLogger(usingFile: fileName,
-                                     rollover: FileLogger.FileRollover(atSize: 100000, naming: .sequentialWith(maxLogFiles: 10)))
+                                     rollover: FileLogger.FileRollover(atSize: 100000, naming: .sequentialWith(maxLogFiles: 10)),
+                                     withLogFormat: TextFileLogger.LOG_FORMAT_WITH_SOURCE)
         
         for i in 0..<10000 {
             

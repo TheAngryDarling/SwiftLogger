@@ -11,6 +11,9 @@ import IndexedStringFormat
 /// Class for logging to a text file
 public class TextFileLogger: FileLogger {
     
+    public static let LOG_FORMAT_DEFAULT: String = "%{date} - %{process_name} - %{thread} - %{file_name}:%{file_line} - %{function_name} - %{log_level:@.STDName} - %{message}"
+    public static let LOG_FORMAT_WITH_SOURCE: String = "%{date} - %{process_name} - %{source} - %{thread} - %{file_name}:%{file_line} - %{function_name} - %{log_level:@.STDName} - %{message}"
+    
     private let encoding: String.Encoding
     private let dateFormatter: DateFormatter
     private let logformat: String
@@ -35,7 +38,7 @@ public class TextFileLogger: FileLogger {
                 withlogLevel logLevel: LogLevel = .error,
                 useAsyncLogging: Bool = false,
                 usingDateFormat dateFormat: String = LoggerBase.STANDARD_DATE_FORMAT,
-                withLogFormat logformat: String = "%{date} - %{process_name} - %{thread} - %{file_name}:%{file_line} - %{function_name} - %{log_level:@.STDName} - %{message}") {
+                withLogFormat logformat: String = TextFileLogger.LOG_FORMAT_DEFAULT) {
         
         self.encoding = encoding
         self.dateFormatter = DateFormatter()
@@ -103,7 +106,11 @@ public class TextFileLogger: FileLogger {
 
 /// A File logger which only logs messages when the log level provided matches the one in the logger
 public class ExplicitTextFileLogger: TextFileLogger {
-    internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
+    /*internal override func canLogLevel(forInfo info: LogInfo) -> Bool {
         return (info.level == self.logLevel)
+    }*/
+    
+    public override func canLog(_ level: LogLevel) -> Bool {
+        return (level == self.logLevel)
     }
 }

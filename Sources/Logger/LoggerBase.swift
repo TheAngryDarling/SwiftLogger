@@ -22,6 +22,7 @@ public class LoggerBase: Logger {
         public let processIdentifier: Int32
         public let processName: String
         public let threadName: String?
+        public let source: String
         public let filename: String
         public let line: Int
         public let funcname: String
@@ -34,6 +35,7 @@ public class LoggerBase: Logger {
                     processIdentifier: Int32 = ProcessInfo.processInfo.processIdentifier,
                     processName: String = ProcessInfo.processInfo.processName,
                     threadName: String? = nil,
+                    source: String = "N/A",
                     filename: String,
                     line: Int,
                     funcname: String,
@@ -49,6 +51,7 @@ public class LoggerBase: Logger {
                 else if Thread.current._isMainThread { return "main" }
                 return nil
                 }()
+            self.source = source
             self.filename = filename
             self.line = line
             self.funcname = funcname
@@ -68,6 +71,7 @@ public class LoggerBase: Logger {
                 "thread": self.threadName,
                 "process_name": self.processName,
                 "log_level": self.level,
+                "source": self.source,
                 "file_name": self.filename,
                 "file_line": self.line,
                 "function_name": self.funcname,
@@ -165,17 +169,14 @@ public class LoggerBase: Logger {
     }
     
     
-    /// Indicator if the current info can be logged
-    /// - Parameter info: The info wanting to be logged
-    /// - Returns: Returns true of the info should be logged, otherwise false
-    internal func canLogLevel(forInfo info: LogInfo) -> Bool {
-        precondition(type(of: self) != LoggerBase.self, "Can not call abstract method LoggerBase.canLogLevel.  Please use class that inherits it.")
+    public func canLog(_ level: LogLevel) -> Bool {
+        precondition(type(of: self) != LoggerBase.self, "Can not call abstract method LoggerBase.canLog.  Please use class that inherits it.")
         return false
     }
     
-    
     public func logMessage(message: String,
                            level: LogLevel,
+                           source: String,
                            filename: String,
                            line: Int,
                            funcname: String,
@@ -183,12 +184,35 @@ public class LoggerBase: Logger {
         
         let info = LogInfo(level: level,
                            message: message,
+                           source: source,
                            filename: filename,
                            line: line,
                            funcname: funcname,
                            additionalInfo: additionalInfo)
         
-        if self.canLogLevel(forInfo: info) {
+        if self.canLog(info.level) {
+            self.loggerQueue.add {
+                self.logLine(info)
+            }
+        }
+    }
+    
+    public func logMessage(message: String,
+                           level: LogLevel,
+                           filename: String,
+                           line: Int,
+                           funcname: String,
+                           additionalInfo: [String : Any]) {
+        let source = Thread.current.currentLoggerSource ?? "N/A"
+        let info = LogInfo(level: level,
+                           message: message,
+                           source: source,
+                           filename: filename,
+                           line: line,
+                           funcname: funcname,
+                           additionalInfo: additionalInfo)
+        
+        if self.canLog(info.level) {
             self.loggerQueue.add {
                 self.logLine(info)
             }
